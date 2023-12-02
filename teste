@@ -1,0 +1,117 @@
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+public class Calculadora extends JFrame {
+    private JTextField display;
+    private double valorAnterior;
+    private String operacaoPendente;
+
+    public Calculadora() {
+        initComponents();
+        valorAnterior = 0;
+        operacaoPendente = "";
+    }
+
+    private void initComponents() {
+        setTitle("Calculadora");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        display = new JTextField();
+        display.setEditable(false);
+        display.setHorizontalAlignment(JTextField.RIGHT);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(4, 4));
+
+        String[] buttonLabels = {
+            "7", "8", "9", "/",
+            "4", "5", "6", "*",
+            "1", "2", "3", "-",
+            "0", ".", "=", "+"
+        };
+
+        for (String label : buttonLabels) {
+            JButton button = new JButton(label);
+            button.addActionListener(new BotaoClickListener());
+            panel.add(button);
+        }
+
+        GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(display)
+            .addComponent(panel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(display, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        pack();
+    }
+
+    private class BotaoClickListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JButton source = (JButton) e.getSource();
+            String buttonText = source.getText();
+
+            if (buttonText.equals("=")) {
+                calcularResultado();
+            } else {
+                processarEntrada(buttonText);
+            }
+        }
+    }
+
+    private void processarEntrada(String buttonText) {
+        if (buttonText.matches("[0-9.]")) {
+            display.setText(display.getText() + buttonText);
+        } else {
+            if (!display.getText().isEmpty()) {
+                valorAnterior = Double.parseDouble(display.getText());
+                operacaoPendente = buttonText;
+                display.setText("");
+            }
+        }
+    }
+
+    private void calcularResultado() {
+        if (!display.getText().isEmpty()) {
+            double valorAtual = Double.parseDouble(display.getText());
+            switch (operacaoPendente) {
+                case "+":
+                    valorAnterior += valorAtual;
+                    break;
+                case "-":
+                    valorAnterior -= valorAtual;
+                    break;
+                case "*":
+                    valorAnterior *= valorAtual;
+                    break;
+                case "/":
+                    if (valorAtual != 0) {
+                        valorAnterior /= valorAtual;
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Não é possível dividir por zero.", "Erro", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            display.setText(Double.toString(valorAnterior));
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new Calculadora().setVisible(true);
+        });
+    }
+}
